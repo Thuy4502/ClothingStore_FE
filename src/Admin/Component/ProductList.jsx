@@ -41,18 +41,18 @@ const ProductsTable = () => {
     const page = pageNumber ? Math.max(0, Number(pageNumber)) : 0;
 
     const data = {
-      category: "", // Chuyển category về chuỗi rỗng nếu không có giá trị
-      colors: [], // Danh sách màu sắc nếu có
+      category: "", 
+      colors: [], 
       gender: "",
-      sizes: [], // Danh sách kích thước nếu có
+      sizes: [], 
       minPrice: 0,
       maxPrice: 100000000000000,
       sort: "price_low",
-      pageNumber: Math.max(0, page - 1), // Đảm bảo pageNumber không nhỏ hơn 0
-      pageSize: 10
+      pageNumber: Math.max(0, page - 1), 
+      pageSize: 50
     };
     dispatch(findProducts(data));
-  }, [dispatch, pageNumber, products.deletedProduct]); // Add dependencies as needed
+  }, [dispatch, pageNumber, products.deletedProduct]); 
 
   return (
     <div>
@@ -76,7 +76,7 @@ const ProductsTable = () => {
                   <TableCell style={{ color: 'white', fontWeight: 'bold' }}>Product Id</TableCell>
                   <TableCell style={{ color: 'white', fontWeight: 'bold' }} align="left">Image</TableCell>
                   <TableCell style={{ color: 'white', fontWeight: 'bold' }} align="left">Product Name</TableCell>
-                  <TableCell style={{ color: 'white', fontWeight: 'bold' }} align="left">Price</TableCell>
+                  <TableCell style={{ color: 'white', fontWeight: 'bold' }} align="left">Price ($)</TableCell>
                   <TableCell style={{ color: 'white', fontWeight: 'bold' }} align="left">Status</TableCell>
                   <TableCell style={{ color: 'white', fontWeight: 'bold' }} align="left">Edit</TableCell>
                   <TableCell style={{ color: 'white', fontWeight: 'bold' }} align="left">Update status</TableCell>
@@ -95,9 +95,12 @@ const ProductsTable = () => {
                       <Avatar src={item.image} />
                     </TableCell>
                     <TableCell align="left">{item.productName}</TableCell>
-                    <TableCell align="left">{item.currentPrice}</TableCell>
+                    <TableCell align="left">${item.currentPrice}</TableCell>
                     <TableCell align="left">{item.status}</TableCell>
-                    <TableCell align="left"><HiPencilAlt /></TableCell>
+                    <TableCell align="left" onClick={() => navigate(`/admin/products/edit/${item.productId}`)}>
+                      <HiPencilAlt />
+                    </TableCell>
+
                     <TableCell align="left">
                       <Button onClick={() => handleDeleteProduct(item.productId)} variant="outlined"
                         sx={{ textTransform: 'none' }}>Delete</Button>

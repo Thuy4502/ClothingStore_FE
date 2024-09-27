@@ -1,8 +1,17 @@
-import { CANCELED_ORDER_REQUEST, CONFIRMED_ORDER_FAILURE, CANCELED_ORDER_FAILURE, CONFIRMED_ORDER_REQUEST, CONFIRMED_ORDER_SUCCESS, DELETE_ORDER_REQUEST, DELETE_ORDER_SUCCESS, DELIVERED_ORDER_FAILURE, DELIVERED_ORDER_SUCCESS, GET_ORDERS_FAILURE, GET_ORDERS_REQUEST, GET_ORDERS_SUCCESS, PLACED_ORDER_FAILURE, PLACED_ORDER_REQUEST, PLACED_ORDER_SUCCESS, SHIP_ORDER_FAILURE, SHIP_ORDER_REQUEST, SHIP_ORDER_SUCCESS } from "./ActionType";
+import { 
+    CANCELED_ORDER_REQUEST, CONFIRMED_ORDER_FAILURE, CANCELED_ORDER_FAILURE, 
+    CONFIRMED_ORDER_REQUEST, CONFIRMED_ORDER_SUCCESS, DELETE_ORDER_REQUEST, 
+    DELETE_ORDER_SUCCESS, DELIVERED_ORDER_FAILURE, DELIVERED_ORDER_SUCCESS, 
+    GET_ORDERS_FAILURE, GET_ORDERS_REQUEST, GET_ORDERS_SUCCESS, PLACED_ORDER_FAILURE, 
+    PLACED_ORDER_REQUEST, PLACED_ORDER_SUCCESS, SHIP_ORDER_FAILURE, SHIP_ORDER_REQUEST, 
+    SHIP_ORDER_SUCCESS, GET_ORDER_BY_ID_REQUEST, GET_ORDER_BY_ID_SUCCESS, 
+    GET_ORDER_BY_ID_FAILURE 
+} from "./ActionType";
 
 const initialState = {
     loading: false,
     orders: [],
+    orderDetails: null,  
     error: "",
 };
 
@@ -25,6 +34,25 @@ const adminOrderReducer = (state = initialState, action) => {
                 orders: [],
                 error: action.payload,
             }
+        case GET_ORDER_BY_ID_REQUEST:
+            return {
+                ...state,
+                loading: true,  
+            };
+        case GET_ORDER_BY_ID_SUCCESS:
+            return {
+                ...state,
+                loading: false,
+                orderDetails: action.payload,  
+                error: ""
+            };
+        case GET_ORDER_BY_ID_FAILURE:
+            return {
+                ...state,
+                loading: false,
+                orderDetails: null,  
+                error: action.payload,
+            };
         case CONFIRMED_ORDER_REQUEST:
         case PLACED_ORDER_REQUEST:
         case DELETE_ORDER_REQUEST:

@@ -1,10 +1,11 @@
-import { useState } from 'react'
-import { Dialog, DialogBackdrop, DialogPanel, Radio, RadioGroup } from '@headlessui/react'
-import { XMarkIcon } from '@heroicons/react/24/outline'
-import { StarIcon } from '@heroicons/react/20/solid'
+import { useState } from 'react';
+import { Dialog, DialogBackdrop, DialogPanel, Radio, RadioGroup } from '@headlessui/react';
+import { XMarkIcon } from '@heroicons/react/24/outline';
+import { StarIcon } from '@heroicons/react/20/solid';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 const product = {
-  name: 'Basic Tee 6-Pack ',
+  name: 'Basic Tee 6-Pack',
   price: '$192',
   rating: 3.9,
   reviewCount: 117,
@@ -23,19 +24,20 @@ const product = {
     { name: 'L', inStock: true },
     { name: 'XL', inStock: true },
   ],
-}
+};
 
 function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
+  return classes.filter(Boolean).join(' ');
 }
 
-export default function ProductQuickView() {
-  const [open, setOpen] = useState(true)
-  const [selectedColor, setSelectedColor] = useState(product.colors[0])
-  const [selectedSize, setSelectedSize] = useState(product.sizes[2])
+const ProductQuickView = () => {
+  const [open, setOpen] = useState(true);
+  const [selectedColor, setSelectedColor] = useState(product.colors[0]);
+  const [selectedSize, setSelectedSize] = useState(product.sizes[2]);
+  const navigate = useNavigate(); // Initialize useNavigate
 
   return (
-    <Dialog open={open} onClose={setOpen} className="relative z-10">
+    <Dialog open={open} onClose={() => setOpen(false)} className="relative z-10">
       <DialogBackdrop
         transition
         className="fixed inset-0 hidden bg-gray-500 bg-opacity-75 transition-opacity data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-200 data-[enter]:ease-out data-[leave]:ease-in md:block"
@@ -105,9 +107,6 @@ export default function ProductQuickView() {
                       <fieldset aria-label="Choose a size" className="mt-10">
                         <div className="flex items-center justify-between">
                           <div className="text-sm font-medium text-gray-900">Size</div>
-                          {/* <a href="#" className="text-sm font-medium text-indigo-600 hover:text-indigo-500">
-                            Size guide
-                          </a> */}
                         </div>
 
                         <RadioGroup
@@ -118,7 +117,7 @@ export default function ProductQuickView() {
                           {product.sizes.map((size) => (
                             <Radio
                               key={size.name}
-                              value={size}
+                              value={size.name} // Update value to size name
                               disabled={!size.inStock}
                               className={classNames(
                                 size.inStock
@@ -155,17 +154,17 @@ export default function ProductQuickView() {
 
                       <button
                         type="submit"
-                        className="mt-6 flex w-full items-center justify-center rounded-md border-transparent bg-[#ebd5d5] px-8 py-3 text-base font-medium text-white hover:bg-[#ffcbcb] focus:outline-none "
-                        >
+                        className="mt-6 flex w-full items-center justify-center rounded-md border-transparent bg-[#ebd5d5] px-8 py-3 text-base font-medium text-white hover:bg-[#ffcbcb] focus:outline-none"
+                      >
                         Add to bag
-                        </button>
-                        <button
-                        type="submit"
+                      </button>
+                      <button
+                        onClick={() => navigate("/account/buy-now")} 
+                        type="button" // Chắc chắn rằng loại nút là "button"
                         className="mt-2 flex w-full items-center justify-center rounded-md border-transparent bg-[#ea8a8a] px-8 py-3 text-base font-medium text-white hover:bg-[#ff9776] focus:outline-none"
-                        >
+                      >
                         Buy now
-                        </button>
-
+                      </button>
                     </form>
                   </section>
                 </div>
@@ -175,5 +174,7 @@ export default function ProductQuickView() {
         </div>
       </div>
     </Dialog>
-  )
+  );
 }
+
+export default ProductQuickView;

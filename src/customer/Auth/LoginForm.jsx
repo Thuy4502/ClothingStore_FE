@@ -1,22 +1,33 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux'; // Import đúng
+import { useDispatch, useSelector } from 'react-redux';
 import { Grid, TextField, Button } from '@mui/material';
-import { login, getUser } from '../../State/Auth/Action'; // Thêm import getUser nếu cần
+import { login, getUser } from '../../State/Auth/Action';
 
 const LoginForm = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Lấy state từ Redux store
-  const auth = useSelector((state) => state.auth);
-  const jwt = useSelector((state) => state.auth.jwt); // Đảm bảo jwt được định nghĩa và lấy từ store
+  const jwt = useSelector((state) => state.auth.jwt);
+  const user = useSelector((state) => state.auth.user);
+  const error = useSelector((state) => state.auth.error)
+
+
 
   useEffect(() => {
     if (jwt) {
-      dispatch(getUser(jwt));
+      dispatch(getUser(jwt)).then(() => {
+        const role = localStorage.getItem("role");
+        if (role === "2") {
+          navigate("/admin");
+        } else {
+          navigate("/home");
+        }
+      }).catch((error) => {
+        console.error("Error fetching user data:", error);
+      });
     }
-  }, [jwt, dispatch]);
+  }, [jwt, dispatch, navigate]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -25,35 +36,47 @@ const LoginForm = () => {
       username: data.get("username"),
       password: data.get("password"),
     };
-    dispatch(login(userData));
-    console.log("userData", userData);
+    dispatch(login(userData))
+      .then(() => {
+        const jwt = localStorage.getItem("jwt");
+        if (jwt) {
+          const userRole = localStorage.getItem("role");
+          if (userRole) {
+            localStorage.setItem("role", userRole);
+          }
+        }
+      })
+      .catch((error) => {
+        console.error("Login failed:", error);
+      });
+
   };
+
 
   return (
     <div>
-      <form onSubmit={handleSubmit} >
+      <form onSubmit={handleSubmit}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
             <TextField
-              required
               id='username'
               name='username'
               label='Username'
               fullWidth
               autoComplete='given-name'
               sx={{
-                '& .MuiInputLabel-root': { color:  'var(--primary-color)'}, // Màu cho label
+                '& .MuiInputLabel-root': { color: 'var(--primary-color)' },
                 '& .MuiInputLabel-root.Mui-focused': { color: 'var(--primary-color)' },
-                '& .MuiFormHelperText-root': { color: 'var(--primary-color)' }, // Màu cho helper text
+                '& .MuiFormHelperText-root': { color: 'var(--primary-color)' },
                 '& .MuiOutlinedInput-root': {
                   '& fieldset': {
-                    borderColor: '#ddd', // Màu border khi không focus
+                    borderColor: '#ddd',
                   },
                   '&:hover fieldset': {
-                    borderColor: 'var(--primary-color)', // Màu border khi hover
+                    borderColor: 'var(--primary-color)',
                   },
                   '&.Mui-focused fieldset': {
-                    borderColor: 'var(--primary-color)', // Màu border khi focus
+                    borderColor: 'var(--primary-color)',
                   },
                 },
               }}
@@ -61,25 +84,25 @@ const LoginForm = () => {
           </Grid>
           <Grid item xs={12}>
             <TextField
-              required
               id='password'
               name='password'
               label='Password'
               fullWidth
               autoComplete='password'
+              type='password'
               sx={{
-                '& .MuiInputLabel-root': { color:  'var(--primary-color)'}, // Màu cho label 
+                '& .MuiInputLabel-root': { color: 'var(--primary-color)' },
                 '& .MuiInputLabel-root.Mui-focused': { color: 'var(--primary-color)' },
-                '& .MuiFormHelperText-root': { color: 'var(--primary-color)' }, // Màu cho helper text
+                '& .MuiFormHelperText-root': { color: 'var(--primary-color)' },
                 '& .MuiOutlinedInput-root': {
                   '& fieldset': {
-                    borderColor: '#ddd', // Màu border khi không focus
+                    borderColor: '#ddd',
                   },
                   '&:hover fieldset': {
-                    borderColor: 'var(--primary-color)', // Màu border khi hover
+                    borderColor: 'var(--primary-color)',
                   },
                   '&.Mui-focused fieldset': {
-                    borderColor: 'var(--primary-color)', // Màu border khi focus
+                    borderColor: 'var(--primary-color)',
                   },
                 },
               }}
@@ -98,18 +121,23 @@ const LoginForm = () => {
           </Grid>
         </Grid>
         <Grid item xs={12}>
-            <Button
-              onClick={() => navigate("/forgot-password")}
-              className='mt-2'
-              size='small'
-              sx={{ textTransform: 'none',
-                color: 'var(--primary-color)'
-               }}
-            >
-              Forgot Password?
-            </Button>
-          </Grid>
-        
+          {error && (
+            <p id="error" className='text-red-800 ml-1 mt-2'>{error}</p>
+          )}
+        </Grid>
+        <Grid item xs={12}>
+          <Button
+            onClick={() => navigate("/forgot-password")}
+            className='mt-2'
+            size='small'
+            sx={{
+              textTransform: 'none',
+              color: 'var(--primary-color)'
+            }}
+          >
+            Forgot Password?
+          </Button>
+        </Grid>
       </form>
       <div className='flex justify-center flex-col items-center'>
         <div className='py-3 flex items-center'>
@@ -118,9 +146,9 @@ const LoginForm = () => {
             onClick={() => navigate("/register")}
             className='ml-5'
             size='small'
-            sx={{ 
+            sx={{
               color: 'var(--primary-color)'
-             }}
+            }}
           >
             Register
           </Button>

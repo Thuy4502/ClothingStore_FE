@@ -21,7 +21,7 @@ const CreateProductForm = () => {
     gender: "",
     status: "active",
     createdById: localStorage.getItem("staffId"),
-    productDetails: initialSizes, // Sử dụng tên `productDetails` để giữ thông tin kích thước
+    productDetails: initialSizes,
     quantity: "",
     categoryId: "",
     description: "",
@@ -43,7 +43,7 @@ const CreateProductForm = () => {
   const handleSizeChange = (e, index) => {
     const { name, value } = e.target;
     const updatedSizes = [...productData.productDetails];
-    updatedSizes[index][name] = value; // Cập nhật giá trị theo tên trường
+    updatedSizes[index][name] = value; 
     setProductData((prevState) => ({
       ...prevState,
       productDetails: updatedSizes,
@@ -76,7 +76,7 @@ const CreateProductForm = () => {
                 variant="outlined"
                 sx={{fontFamily: 'Poppins' }}
                 InputProps={{
-                  style: { fontFamily: 'Poppins' }, // Apply Poppins font
+                  style: { fontFamily: 'Poppins' }, 
                 }}
               />
             </Grid>

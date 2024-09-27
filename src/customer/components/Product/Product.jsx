@@ -1,20 +1,6 @@
-/*
-  This example requires some changes to your config:
-  
-  ```
-  // tailwind.config.js
-  module.exports = {
-    // ...
-    plugins: [
-      // ...
-      require('@tailwindcss/forms'),
-    ],
-  }
-  ```
-*/
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Dialog,
   DialogBackdrop,
@@ -29,28 +15,18 @@ import {
 } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { ChevronDownIcon, FunnelIcon, MinusIcon, PlusIcon, Squares2X2Icon } from '@heroicons/react/20/solid'
-import { products1 } from '../../../Data/products1'
 import ProductCard from './ProductCard'
 import { filters, singleFilter } from './FilterData'
-import Radio from '@mui/material/Radio';
-import RadioGroup from '@mui/material/RadioGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import FormControl from '@mui/material/FormControl';
-import FormLabel from '@mui/material/FormLabel';
 import FilterListOutlinedIcon from '@mui/icons-material/FilterListOutlined';
 import { useLocation, useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { useEffect } from 'react'
 import { useSelector } from 'react-redux';
 import Pagination from '@mui/material/Pagination';
-
-
 import { findProducts } from '../../../State/Product/Action'
-
+import { getActivePromotions } from '../../../State/Promotion/Action'
 
 const sortOptions = [
-
   { name: 'Price: Low to High', href: '#', current: false },
   { name: 'Price: High to Low', href: '#', current: false },
 ]
@@ -63,71 +39,59 @@ export default function Product() {
   const location = useLocation()
   const navigate = useNavigate();
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
-  const param=useParams();
-  const dispatch=useDispatch();
-  const {products}=useSelector(store=>store)
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredProducts, setFilteredProducts] = useState([]);
 
-  // console.log("page: ",products.totalpages)
-  console.log("Danh sach san pham: " , products)
+  const param = useParams();
+  const dispatch = useDispatch();
+  const { products, promotions } = useSelector(store => store)
 
-  const decodeQueryString=decodeURIComponent(location.search);
-  const searchPramms=new URLSearchParams(decodeQueryString);
-  const colorValue=searchPramms.get("colors");
-  const genderValue=searchPramms.get("gender");
-  const sizeValue=searchPramms.get("sizes");
-  const priceValue=searchPramms.get("price");
-  const sortValue=searchPramms.get("sort");
-  const pageNumber=searchPramms.get("page");
-  const category=searchPramms.get("category");
-
-  // const handlePaginationChange=(event,value)=> {
-  //     const searchParams=new URLSearchParams(location.search)
-  //     searchParams.set("page", value);
-  //     const query = searchParams.toString();
-  //     navigate({search:`${query}`})
-  // }
+  const decodeQueryString = decodeURIComponent(location.search);
+  const searchPramms = new URLSearchParams(decodeQueryString);
+  const colorValue = searchPramms.get("colors");
+  const genderValue = searchPramms.get("gender");
+  const sizeValue = searchPramms.get("sizes");
+  const priceValue = searchPramms.get("price");
+  const sortValue = searchPramms.get("sort");
+  const pageNumber = searchPramms.get("page");
+  const category = searchPramms.get("category");
 
   useEffect(() => {
-    // Xử lý giá trị giá
     const [minPrice, maxPrice] = priceValue ? priceValue.split("-").map(Number) : [0, 10000000000000];
-    
-    // Xử lý số trang
     const page = pageNumber ? Math.max(0, Number(pageNumber)) : 0;
-    
-    // Xử lý tham số colors
-    const colorList = colorValue ? colorValue.split(",").filter(color => color.trim() !== "") : [];
-  
-    // Tạo dữ liệu yêu cầu
+
     const data = {
-      category: category || "", // Chuyển category về chuỗi rỗng nếu không có giá trị
-      colors: colorList, // Danh sách màu sắc nếu có
+      category: category || "",
+      colors: colorValue,
       gender: genderValue || "",
-      sizes: sizeValue ? sizeValue.split(",").filter(size => size.trim() !== "") : [], // Danh sách kích thước nếu có
+      sizes: sizeValue ? sizeValue.split(",").filter(size => size.trim() !== "") : [],
       minPrice,
       maxPrice,
       sort: sortValue || "price_low",
-      pageNumber: Math.max(0, page - 1), // Đảm bảo pageNumber không nhỏ hơn 0
-      pageSize: 10
+      pageNumber: Math.max(0, page - 1),
+      pageSize: 9
     };
-  
-    // Gửi yêu cầu
+
+    // console.log("Request Data:", data);
+
     dispatch(findProducts(data));
-    console.log("parameter", data);
-  
+    dispatch(getActivePromotions())
   }, [category, colorValue, genderValue, sizeValue, priceValue, sortValue, pageNumber]);
-  
 
-  
 
-  function classNames(...classes) {
-      return classes.filter(Boolean).join
-  }
-
+  useEffect(() => {
+    if (products.products?.content) {
+      const filtered = products.products.content.filter(product =>
+        (product.productName || "").toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredProducts(filtered);
+    }
+  }, [searchTerm, products.products?.content]);
 
   const handleFilter = (value, sectionId) => {
     const searchParams = new URLSearchParams(location.search);
     let filterValue = searchParams.getAll(sectionId);
-  
+
     if (filterValue.length > 0 && filterValue[0].split(",").includes(value)) {
       filterValue = filterValue[0].split(",").filter((item) => item !== value);
       if (filterValue.length === 0) {
@@ -139,27 +103,11 @@ export default function Product() {
       filterValue.push(value);
       searchParams.set(sectionId, filterValue.join(","));
     }
-  
-    // Nếu không còn bất kỳ tùy chọn nào cho filter, xóa tham số
+
     if (searchParams.get(sectionId) === "") {
       searchParams.delete(sectionId);
     }
-  
-    const query = searchParams.toString();
-    navigate({ search: `?${query}` });
-  }
-  
 
-  const handleRadioFilterChange = (e, sectionId) => {
-    const searchParams = new URLSearchParams(location.search);
-    const value = e.target.value;
-  
-    if (value) {
-      searchParams.set(sectionId, value);
-    } else {
-      searchParams.delete(sectionId);
-    }
-  
     const query = searchParams.toString();
     navigate({ search: `?${query}` });
   }
@@ -170,19 +118,24 @@ export default function Product() {
     const query = searchParams.toString();
     navigate({ search: `?${query}` });
   }
-  
-  
+
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+  }
+
+  const handleSearchSubmit = (event) => {
+    event.preventDefault();
+  }
+  const activeProducts = products?.products?.content?.filter(product => product.status === 'active');
 
   return (
     <div className="bg-white">
       <div>
-        {/* Mobile filter dialog */}
         <Dialog open={mobileFiltersOpen} onClose={setMobileFiltersOpen} className="relative z-40 lg:hidden">
           <DialogBackdrop
             transition
             className="fixed inset-0 bg-black bg-opacity-25 transition-opacity duration-300 ease-linear data-[closed]:opacity-0"
           />
-
           <div className="fixed inset-0 z-40 flex">
             <DialogPanel
               transition
@@ -199,20 +152,8 @@ export default function Product() {
                   <XMarkIcon aria-hidden="true" className="h-6 w-6" />
                 </button>
               </div>
-
               {/* Filters */}
               <form className="mt-4 border-t border-gray-200">
-                {/* <h3 className="sr-only">Categories</h3>
-                <ul role="list" className="px-2 py-3 font-medium text-gray-900">
-                  {subCategories.map((category) => (
-                    <li key={category.name}>
-                      <a href={category.href} className="block px-2 py-3">
-                        {category.name}
-                      </a>
-                    </li>
-                  ))}
-                </ul> */}
-
                 {filters.map((section) => (
                   <Disclosure key={section.id} as="div" className="border-t border-gray-200 px-4 py-6">
                     <h3 className="-mx-2 -my-3 flow-root">
@@ -259,161 +200,103 @@ export default function Product() {
 
             <div className="flex items-center">
               <Menu as="div" className="relative inline-block text-left">
-                <div>
-                  <MenuButton className="group inline-flex justify-center text-sm font-medium text-gray-700 hover:text-gray-900">
-                    Sort
-                    <ChevronDownIcon
-                      aria-hidden="true"
-                      className="-mr-1 ml-1 h-5 w-5 flex-shrink-0 text-gray-400 group-hover:text-gray-500"
-                    />
-                  </MenuButton>
-                </div>
 
-                <MenuItems
-                  transition
-                  className="absolute right-0 z-10 mt-2 w-40 origin-top-right rounded-md bg-white shadow-2xl ring-1 ring-black ring-opacity-5 transition focus:outline-none data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
-                >
-                  <div className="py-1">
-                    {sortOptions.map((option) => (
-                      <MenuItem key={option.name}>
-                        <a
-                          href={option.href}
-                          className={classNames(
-                            option.current ? 'font-medium text-gray-900' : 'text-gray-500',
-                            'block px-4 py-2 text-sm data-[focus]:bg-gray-100',
-                          )}
-                        >
-                          {option.name}
-                        </a>
-                      </MenuItem>
-                    ))}
-                  </div>
+                <MenuItems className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                  {sortOptions.map((option) => (
+                    <MenuItem
+                      key={option.name}
+                      href={option.href}
+                      className={classNames(
+                        option.current ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                        'block px-4 py-2 text-sm'
+                      )}
+                    >
+                      {option.name}
+                    </MenuItem>
+                  ))}
                 </MenuItems>
               </Menu>
 
-              <button type="button" className="-m-2 ml-5 p-2 text-gray-400 hover:text-gray-500 sm:ml-7">
-                <span className="sr-only">View grid</span>
-                <Squares2X2Icon aria-hidden="true" className="h-5 w-5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setMobileFiltersOpen(true)}
-                className="-m-2 ml-4 p-2 text-gray-400 hover:text-gray-500 sm:ml-6 lg:hidden"
-              >
-                <span className="sr-only">Filters</span>
-                <FunnelIcon aria-hidden="true" className="h-5 w-5" />
-              </button>
+              {/* Search Bar */}
+              <form onSubmit={handleSearchSubmit} className="relative ml-4">
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  placeholder="Search products..."
+                  className="border rounded-lg px-2 py-1"
+                />
+                <button
+                  type="submit"
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-300"
+                >
+                  <span className="sr-only">Search</span>
+
+                </button>
+              </form>
             </div>
           </div>
 
           <section aria-labelledby="products-heading" className="pb-24 pt-6">
-            <h2 id="products-heading" className="sr-only">
-              Products
-            </h2>
+            <h2 id="products-heading" className="sr-only">Products</h2>
 
             <div className="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4">
-
               {/* Filters */}
-              <div>
-                <div className='py-8 flex justify-between items-center'>
-                  <h1 className='text-lg opacity-50 font-bold'>Filters</h1>
-                  <FilterListOutlinedIcon />
-                </div>
-                <form className="hidden lg:block">
-                  {/* <h3 className="sr-only">Categories</h3>
-                <ul role="list" className="space-y-4 border-b border-gray-200 pb-6 text-sm font-medium text-gray-900">
-                  {subCategories.map((category) => (
-                    <li key={category.name}>
-                      <a href={category.href}>{category.name}</a>
-                    </li>
-                  ))}
-                </ul> */}
-
-                  {filters.map((section) => (
-                    <Disclosure key={section.id} as="div" className="border-b border-gray-200 py-6">
-                      <h3 className="-my-3 flow-root">
-                        <DisclosureButton className="group flex w-full items-center justify-between bg-white py-3 text-sm text-gray-400 hover:text-gray-500">
-                          <span className="font-medium text-gray-900">{section.name}</span>
-                          <span className="ml-6 flex items-center">
-                            <PlusIcon aria-hidden="true" className="h-5 w-5 group-data-[open]:hidden" />
-                            <MinusIcon aria-hidden="true" className="h-5 w-5 [.group:not([data-open])_&]:hidden" />
-                          </span>
-                        </DisclosureButton>
-                      </h3>
-                      <DisclosurePanel className="pt-6">
-                        <div className="space-y-4">
-                          {section.options.map((option, optionIdx) => (
-                            <div key={option.value} className="flex items-center">
-                              <input
-                                onChange={() => handleFilter(option.value, section.id)}
-
-                                defaultValue={option.value}
-                                defaultChecked={option.checked}
-                                id={`filter-${section.id}-${optionIdx}`}
-                                name={`${section.id}[]`}
-                                type="checkbox"
-                                className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                              />
-                              <label htmlFor={`filter-${section.id}-${optionIdx}`} className="ml-3 text-sm text-gray-600">
-                                {option.label}
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                      </DisclosurePanel>
-                    </Disclosure>
-                  ))}
-                  {/* {singleFilter.map((section) => (
-                    <Disclosure key={section.id} as="div" className="border-b border-gray-200 py-6">
-
-                      <h3 className="-my-3 flow-root">
-                        <DisclosureButton className="group flex w-full items-center justify-between bg-white py-3 text-sm text-gray-400 hover:text-gray-500">
-                         
-                          <FormLabel sx={{ color: "black" }} className="font-medium text-gray-900" id="demo-radio-buttons-group-label">{section.name}</FormLabel>
-                          <span className="ml-6 flex items-center">
-                            <PlusIcon aria-hidden="true" className="h-5 w-5 group-data-[open]:hidden" />
-                            <MinusIcon aria-hidden="true" className="h-5 w-5 [.group:not([data-open])_&]:hidden" />
-                          </span>
-                        </DisclosureButton>
-                      </h3>
-                      <DisclosurePanel className="pt-6">
-                        <div className="space-y-4">
-                          <FormControl>
-                            <RadioGroup
-                              aria-labelledby="demo-radio-buttons-group-label"
-                              defaultValue="female"
-                              name="radio-buttons-group"
+              <form className="hidden lg:block">
+                {filters.map((section) => (
+                  <Disclosure key={section.id} as="div" className="border-t border-gray-200 py-6">
+                    <h3 className="-my-3 flow-root">
+                      <DisclosureButton className="group flex w-full items-center justify-between text-gray-400 hover:text-gray-500">
+                        <span className="font-medium text-gray-900">{section.name}</span>
+                        <span className="ml-6 flex items-center">
+                          <PlusIcon aria-hidden="true" className="h-5 w-5 group-data-[open]:hidden" />
+                          <MinusIcon aria-hidden="true" className="h-5 w-5 [.group:not([data-open])_&]:hidden" />
+                        </span>
+                      </DisclosureButton>
+                    </h3>
+                    <DisclosurePanel className="pt-6">
+                      <div className="space-y-6">
+                        {section.options.map((option, optionIdx) => (
+                          <div key={option.value} className="flex items-center">
+                            <input
+                              defaultValue={option.value}
+                              defaultChecked={option.checked}
+                              id={`filter-${section.id}-${optionIdx}`}
+                              name={`${section.id}[]`}
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                              onChange={() => handleFilter(option.value, section.id)}
+                            />
+                            <label
+                              htmlFor={`filter-${section.id}-${optionIdx}`}
+                              className="ml-3 text-gray-600"
                             >
-                              {section.options.map((option, optionIdx) => (
-                                <>
-                                  <FormControlLabel onChange={(e) => handleRadioFilterChange(e, section.id)} value={option.value} control={<Radio />} label={option.label} />
-                                </>
-                              ))}
-                            </RadioGroup>
-                          </FormControl>
-                        </div>
-                      </DisclosurePanel>
+                              {option.label}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </DisclosurePanel>
+                  </Disclosure>
+                ))}
+              </form>
 
-                    </Disclosure>
-                  ))} */}
-                </form>
-              </div>
               {/* Product grid */}
               <div className="lg:col-span-3 w-full">
                 <div className='flex flex-wrap justify-center bg-white py-5'>
-                  {/* {products1.map((item) => <ProductCard product={item} />)} */}
-                  {products.products && products.products.content?.map((item) => (<ProductCard key={item.id} product={item} />))}
-
-
+                  {filteredProducts
+                    .filter(item => item.status === 'active')
+                    .map(item => (
+                      <ProductCard key={item.id} product={item} />
+                    ))}
                 </div>
-
               </div>
             </div>
           </section>
+
           <section className='w-full px=[3.6rem]'>
-            <div className='px-4 py-5 flex justify-center'
-            >
-              <Pagination count={products.products?.totalPages} color='primary' onChange={handlePaginationChange}/>
+            <div className='px-4 py-5 flex justify-center'>
+              <Pagination count={products.products?.totalPages} color='primary' onChange={handlePaginationChange} />
             </div>
           </section>
         </main>
@@ -421,6 +304,3 @@ export default function Product() {
     </div>
   )
 }
-
-
-

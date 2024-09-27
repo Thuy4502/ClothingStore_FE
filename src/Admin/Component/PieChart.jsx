@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { PieChart } from '@mui/x-charts/PieChart';
-import { retrieveTopSelling } from '../../State/Statistic/Action'; // Update the path as needed
+import { retrieveTopSelling } from '../../State/Statistic/Action'; 
 
 const BasicPie = () => {
     const dispatch = useDispatch();
@@ -14,9 +14,9 @@ const BasicPie = () => {
     if (loading) return <div>Loading...</div>;
     if (error) return <div className="text-red-500">{error}</div>;
 
-    // Check if topSelling is defined and is an array
+
     const pieData = Array.isArray(topSellingProducts?.data) ? topSellingProducts.data.map(item => ({
-        id: item.productId.toString(), // Convert productId to string
+        id: item.productId.toString(),
         value: item.totalSold,
         label: item.productName
     })) : [];
@@ -24,13 +24,13 @@ const BasicPie = () => {
     console.log("Pie data", topSellingProducts);
 
     return (
-        <div className="flex flex-col items-center justify-center h-full ">
+        <div className="flex flex-col l-0 h-full ">
             <div className='font-semibold text-center mb-10'>Top 3 sản phẩm bán chạy nhất</div>
-            <div className="w-full flex justify-center mt-10">
+            <div className="w-full flex justify-center l-0 mt-5">
                 <PieChart
-                    data={pieData} // Pass the data directly
+                    data={pieData} 
                     width={600}
-                    height={200}
+                    height={250}
                     series={[{ 
                         data: pieData,
                         label: {
@@ -44,7 +44,7 @@ const BasicPie = () => {
                             },
                         },
                     }]}
-                    colors={['#FF6384', '#36A2EB', '#FFCE56']} // Custom color palette
+                    colors={['#FF6384', '#36A2EB', '#FFCE56']}
                 />
             </div>
         </div>

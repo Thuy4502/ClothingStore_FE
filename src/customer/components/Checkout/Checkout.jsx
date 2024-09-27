@@ -5,18 +5,17 @@ import Step from '@mui/material/Step';
 import StepLabel from '@mui/material/StepLabel';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import { DivideIcon } from '@heroicons/react/20/solid';
 import { useLocation } from 'react-router-dom';
 import DeliveryAddressForm from './DeliveryAddressForm';
 import OrderSumary from './OrderSumary';
 
-const steps = ['Login', 'Add Delivery Address','Order Summary', 'Payment'];
+const steps = ['Login', 'Add Delivery Address', 'Order Summary'];
 
 export default function Checkout() {
     const [activeStep, setActiveStep] = React.useState(0);
     const location = useLocation();
-    const querySearch=new URLSearchParams(location.search)
-    const step=querySearch.get('step')
+    const querySearch = new URLSearchParams(location.search)
+    const step = querySearch.get('step')
 
     const handleNext = () => {
         let newSkipped = skipped;
@@ -31,7 +30,10 @@ export default function Checkout() {
 
     return (
         <div className='px-10 lg:px-20 py-10'>
-            <Box sx={{ width: '100%' }}>
+            <div className='mt-10'>
+                {step == 2 ? <DeliveryAddressForm /> : <OrderSumary />}
+            </div>
+            {/* <Box sx={{ width: '100%' }}>
                 <Stepper activeStep={step}>
                     {steps.map((label, index) => {
                         const stepProps = {};
@@ -52,8 +54,8 @@ export default function Checkout() {
                     </React.Fragment>
                 ) : (
                     <React.Fragment>
-                        {/* <Typography sx={{ mt: 2, mb: 1 }}>Step {activeStep + 1}</Typography> */}
-
+                        <Typography sx={{ mt: 2, mb: 1 }}>Step {activeStep + 1}</Typography>
+                        
                         <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
                             <Button
                                 color="inherit"
@@ -68,11 +70,11 @@ export default function Checkout() {
                       
                         </Box>
                         <div className='mt-10'>
-                            {step==2? <DeliveryAddressForm/>:<OrderSumary/>}
+                            {step == 2 ? <DeliveryAddressForm /> : <OrderSumary />}
                         </div>
                     </React.Fragment>
                 )}
-            </Box>
+            </Box> */}
         </div>
     );
 }

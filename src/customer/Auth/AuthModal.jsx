@@ -1,11 +1,11 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
 import Modal from '@mui/material/Modal';
 import RegisterForm from './RegisterForm';
 import { useLocation } from 'react-router-dom';
 import LoginForm from './LoginForm';
+import ForgotPassword from './ForgotPassword';
+import OTPForm from './OTPForm';
 
 const style = {
   position: 'absolute',
@@ -20,7 +20,7 @@ const style = {
   p: 4,
 };
 
-const AuthModal=({handleClose, open}) => {
+const AuthModal = ({ handleClose, open }) => {
   // const [open, setOpen] = React.useState(false);
   // const handleOpen = () => setOpen(true);
   // const handleClose = () => setOpen(false);
@@ -37,8 +37,12 @@ const AuthModal=({handleClose, open}) => {
         aria-describedby="modal-modal-description"
       >
         <Box sx={style}>
-          {location.pathname==="/login"?<LoginForm/>: <RegisterForm/>}
-         
+          {location.pathname === '/login' && <LoginForm />}
+          {location.pathname === '/register' && <RegisterForm />}
+          {location.pathname === '/forgot-password' && <ForgotPassword/>}
+          {location.pathname === '/confirm-otp' && <OTPForm/>}
+
+
         </Box>
       </Modal>
     </div>

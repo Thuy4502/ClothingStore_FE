@@ -8,6 +8,8 @@ import { removeCartItem, updateCartItem } from '../../../State/Cart/Action';
 
 const OrderItem = ({item}) => {
     const dispatch=useDispatch();
+    const discountPercent = localStorage.getItem("discountValue");
+    let originalPrice = (item?.price*100)/discountPercent;
     const handleUpdateCartItem = (num)=> {
         const data={data: {quantity:item?.quantity+num}, cartItemId:item?.cartItemId}
         dispatch(updateCartItem(data))
@@ -30,25 +32,17 @@ const OrderItem = ({item}) => {
                 <div className='ml-5 space-y-1'>
                     <p className='font-semibold'>{item?.productName}</p>
                     <p className='opacity-70'>Size: {item?.size}, {item?.color}</p>
-                    <p className='opacity-70 mt-2'>Seller: {item?.brand_name}</p>
+                    {/* <p className='opacity-70 mt-2'>Seller: {item?.brand_name}</p> */}
 
                     <div className='flex space-x-5 items-center text-gray-900 pt-6'>
-                        <p className='font-semibold'></p>
-                        <p className='opacity-50 line-through'>{item?.price}</p>
-                        <p className='text-green-600 font-semibold'>5% Off</p>
+                        <p className='font-bold'>Price: ${item?.price}</p>
+                        <p className='text-gray-600 line-through'>${originalPrice}</p>
+                        <p className='text-green-600 font-semibold'>{discountPercent}% Off</p>
                     </div>
                     <div className='lg:flex items-center lg:space-x-10 pt-4'>
                         <div className='flex item-center space-x-2'>
-                            {/* <IconButton onClick={()=>handleUpdateCartItem(-1)}  sx={{color:'var(--primary-color)'}} disabled={item?.quantity<=1}>
-                                <RemoveCircleOutlineIcon />
-                            </IconButton> */}
                             <span className='py-1 px-7 border rounded-sm'>{item?.quantity}</span>
-                            {/* <IconButton onClick={()=>handleUpdateCartItem(1)} sx={{color:'var(--primary-color)'}}>
-                                <AddCircleOutlineIcon />
-                            </IconButton> */}
-                        </div>
-                        <div>
-                            <Button onClick={handleRemoveCartItem} sx={{color:'var(--primary-color)'}}>remove</Button>
+
                         </div>
                     </div>
                 </div>

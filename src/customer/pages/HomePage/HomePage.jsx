@@ -8,11 +8,12 @@ import { products1 } from '../../../Data/products1';
 const HomePage = () => {
   return (
     <div>
-        <MainCarousel/>
-        <div className='flex flex-col space-y-1 py-20'>
-            <HomeSectionCarousel data={products1} sectionName={"T-shirt"}/>
-            <HomeSectionCarousel data={products1} sectionName={"Dress"}/>
-        </div>
+      <MainCarousel />
+      <div className='flex flex-col space-y-1 py-20'>
+        <HomeSectionCarousel category="1" sectionName="T-shirt" />
+        {/* <HomeSectionCarousel category="7" sectionName="Shirt" /> */}
+
+      </div>
     </div>
   )
 }

@@ -10,6 +10,25 @@ function Cart() {
     const navigate = useNavigate();
     const { cart } = useSelector(store => store)
     const dispatch = useDispatch();
+    const {promotions } = useSelector(store => store);
+    let discountPercent = 0;
+    let originPrice = 0;
+
+    // useEffect(() => {
+    //     dispatch(getActivePromotions());
+    // }, [dispatch]);
+    
+    if (promotions && promotions.activePromotions && Array.isArray(promotions.activePromotions.data) && promotions.activePromotions.data.length > 0) {
+        const promotion = promotions.activePromotions.data[0];
+        if (promotion && typeof promotion.discountValue === 'number') {
+            discountPercent = promotion.discountValue;
+            originPrice = (cart.cart?.data?.reduce((total, item) => total + item.price * item.quantity, 0) * 100)/discountPercent;
+        } else {
+            console.log("Discount value is not a number");
+        }
+    } else {
+        console.log("No active promotions or data is not in expected format");
+    }
     const handleCheckout = () => {
         navigate('/checkout?step=2')
     }
@@ -17,7 +36,7 @@ function Cart() {
         dispatch(getCart())
     }, [cart.updateCartItem, cart.deleteCartItem])
 
-    const totalPrice = cart.cart?.data?.reduce((total, item) => total + item.price * item.quantity, 0);
+    const discountedPrice = cart.cart?.data?.reduce((total, item) => total + item.price * item.quantity, 0);
 
     return (
         <div>
@@ -36,11 +55,11 @@ function Cart() {
                         <div className='space-y-3 font-semibold mb-10' >
                             <div className='flex justify-between pt-3 text-black'>
                                 <span>Price</span>
-                                <span>{totalPrice || '0'}</span>
+                                <span>{originPrice || '0'}</span>
                             </div>
                             <div className='flex justify-between pt-3 text-black'>
                                 <span>Discount</span>
-                                <span className='text-green-600'>$20</span>
+                                <span className='text-green-600'>${originPrice-discountedPrice}</span>
                             </div>
                             <div className='flex justify-between pt-3 text-black'>
                                 <span>Delivery charges</span>
@@ -48,7 +67,7 @@ function Cart() {
                             </div>
                             <div className='flex justify-between pt-3 text-black font-bold'>
                                 <span>Total amount</span>
-                                <span>{totalPrice || '0'}</span>
+                                <span>${discountedPrice || '0'}</span>
                             </div>
                         </div>
                         <Button onClick={handleCheckout} variant='contained' className='w-full mt-5' sx={{ px: '2.5rem', py: '.7rem', bgcolor: 'var(--primary-color)' }}>

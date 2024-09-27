@@ -1,34 +1,64 @@
 import React, { useEffect, useState } from 'react';
 import AddressCard from '../AddressCard/AddressCard';
-import OrderTracker from './OrderTracker';
-import { Grid, Button, Box } from '@mui/material';
+import { Grid, Button, Box, Snackbar, Alert } from '@mui/material';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getOrderById, cancelOrder } from '../../../State/Order/Action';
 import ReviewModal from '../Review/ReviewModal';
+import OrderTracker from './OrderTracker';
 
+const getOrderStep = (status) => {
+    switch (status) {
+        case 'PENDING':
+            return 0;
+        case 'CONFIRMED':
+            return 1;
+        case 'SHIPPED':
+            return 2;
+        case 'DELIVERED':
+            return 3;
+        case 'COMPLETED':
+            return 4;
+        case 'CANCELLED':
+            return 5;
+        default:
+            return 0; // Default to the first step
+    }
+};
 
 const OrderDetails = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { orderId } = useParams();
-
-    // Select order from Redux store
     const { order } = useSelector(state => state.order);
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [orderCanceled, setOrderCanceled] = useState(false);
 
-    // Fetch order details when component mounts or orderId changes
     useEffect(() => {
         if (orderId) {
             dispatch(getOrderById(orderId));
         }
     }, [orderId, dispatch]);
 
-    // Handle cancel order button click
     const handleCancelOrder = () => {
         if (orderId) {
-            dispatch(cancelOrder(orderId));
+            dispatch(cancelOrder(orderId))
+                .then(() => {
+                    setSnackbarMessage('Order canceled successfully!');
+                    setSnackbarOpen(true);
+                    setOrderCanceled(true);
+                })
+                .catch(() => {
+                    setSnackbarMessage('Failed to cancel order.');
+                    setSnackbarOpen(true);
+                });
         }
+    };
+
+    const handleCloseSnackbar = () => {
+        setSnackbarOpen(false);
     };
 
     const [isModalOpen, setModalOpen] = useState(false);
@@ -45,26 +75,49 @@ const OrderDetails = () => {
         setModalOpen(false);
     };
 
-    // Ensure `order.order` is an array
-    const orderItems = Array.isArray(order?.order) ? order.order : [];
-    const isOrderPlaced = order?.order?.[0].status === 'PENDING';
-    const isDelivered = order?.order?.[0].status === 'DELIVERED';
-    const reviewStatus = order?.order?.[0].reviewStatus;
-    console.log("Trạng thái đã đánh giá", reviewStatus)
-
+    const orderStatus = order?.[0]?.status || 'PENDING'; // Default to 'PENDING'
+    const activeStep = getOrderStep(orderStatus);
 
     return (
         <div className='px-5 lg:px-20'>
-            <div>
-                <h1 className='font-bold text-xl py-7'>Delivery Address</h1>
-                <AddressCard address={order?.order?.[0]} />
+             <div className='py-20'>
+                <OrderTracker activeStep={activeStep} />
             </div>
-            <div className='py-20'>
-                <OrderTracker activeStep={2} />
+
+            <div className='flex justify-between mb-20 mt-5'>
+                <div className='w-1/2 ml-10  border rounded-e-lg pl-5'>
+                    <h1 className='font-bold text-xl py-7'>Delivery Address</h1>
+                    <AddressCard address={order?.[0]} />
+                </div>
+                <div className='w-1/2 px-5 sticky top-0 mt-5 lg:mt-0'>
+                    <div className='border p-2 rounded-md'>
+                        <p className='uppercase font-bold opacity-60 pb-4'>Price detail</p>
+                        <hr />
+                        <div className='space-y-3 font-semibold mb-10'>
+                            <div className='flex justify-between pt-3 text-black'>
+                                <span>Price</span>
+                                <span>${order?.[0]?.totalAmount ?? 'N/A'}</span>
+                            </div>
+                            {/* <div className='flex justify-between pt-3 text-black'>
+                                <span>Discount</span>
+                                <span className='text-green-600'>$0</span>
+                            </div> */}
+                            <div className='flex justify-between pt-3 text-black'>
+                                <span>Delivery charges</span>
+                                <span className='text-green-600'>Free</span>
+                            </div>
+                            <div className='flex justify-between pt-3 text-black font-bold'>
+                                <span>Total amount</span>
+                                <span>${order?.[0]?.totalAmount ?? 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+
             <Grid container className='space-y-5'>
-                {orderItems.length > 0 ? (
-                    orderItems.map((item, index) => (
+                {order?.length > 0 ? (
+                    order.map((item, index) => (
                         <Grid
                             key={index}
                             item
@@ -84,15 +137,16 @@ const OrderDetails = () => {
                                         <p className='space-x-5 opacity-50 text-xs font-semibold'>
                                             <span>Color: {item.color}</span>
                                             <span> Size: {item.size}</span>
+                                            <span>Quantity: {item.quantity}</span>
                                         </p>
-                                        <p>Seller: {item.brandName}</p>
-                                        <p>${item.price}</p>
+                                        {/* <p>Seller: {item.brandName}</p> */}
+                                        <p>Price: ${item.price}</p>
                                     </div>
                                 </div>
                             </Grid>
-                            <Grid item className='cursor-pointer' sx={{ display: isDelivered && reviewStatus !== 'REVIEWED' ? 'block' : 'none' }}>
+                            <Grid item className='cursor-pointer' sx={{ display: order?.[0]?.status === 'DELIVERED' && order?.[0]?.reviewStatus !== 'REVIEWED' ? 'block' : 'none' }}>
                                 <Box sx={{ color: '#ffb5b5', text: 'var(--primary-color)' }}>
-                                    <StarBorderIcon sx={{ fontSize: '3rem' }} fontSize='2px' className='px-2' />
+                                    <StarBorderIcon sx={{ fontSize: '3rem' }} className='px-2' />
                                     <span onClick={() => handleOpenModal(item.orderItemId, item.productId)}>
                                         Rate & Review Product
                                     </span>
@@ -105,16 +159,32 @@ const OrderDetails = () => {
                 )}
             </Grid>
             <div className='mt-10 mb-10 flex justify-end'>
-                <Button variant="contained" color="error" disabled={!isOrderPlaced} onClick={handleCancelOrder}>
+                <Button
+                    variant="contained"
+                    color="error"
+                    disabled={order?.[0]?.status !== 'PENDING' || orderCanceled} // Disable if order is canceled or not in 'PENDING' status
+                    onClick={handleCancelOrder}
+                >
                     Cancel
                 </Button>
             </div>
-            <ReviewModal 
-                open={isModalOpen} 
-                handleClose={handleCloseModal} 
-                orderItemId={selectedOrderItemId} 
+            <ReviewModal
+                open={isModalOpen}
+                handleClose={handleCloseModal}
+                orderItemId={selectedOrderItemId}
                 productId={selectedProductId}
             />
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={6000}
+                onClose={handleCloseSnackbar}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                sx={{ zIndex: 1301 }} 
+            >
+                <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </div>
     );
 };

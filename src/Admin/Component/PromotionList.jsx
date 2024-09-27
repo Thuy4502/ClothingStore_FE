@@ -3,11 +3,13 @@ import { Switch } from '@headlessui/react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllPromotion } from '../../State/Promotion/Action';
 import { useNavigate } from 'react-router-dom';
+import Header from './Header';
+import { format } from 'date-fns'; // Import format from date-fns
 
 const PromotionList = () => {
   const { promotions } = useSelector((store) => store);
   const dispatch = useDispatch();
-  const navigate = useNavigate(); // Initialize navigate function
+  const navigate = useNavigate(); 
   const [promotionList, setPromotionList] = useState([]);
 
   useEffect(() => {
@@ -23,11 +25,13 @@ const PromotionList = () => {
   console.log("Promotion store", promotions);
 
   useEffect(() => {
-    setPromotionList(promotions || []); // Ensure promotions is an array
+    setPromotionList(promotions || []); 
   }, [promotions]);
 
   return (
-    <div className="container mx-auto p-4">
+    <div>
+      <Header/>
+      <div className="container mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4">Promotions</h2>
       <div className="flex justify-end mr-10">
         <button
@@ -56,12 +60,15 @@ const PromotionList = () => {
                 <td className="py-2 text-center">{item.promotionId}</td>
                 <td className="py-2 text-center">{item.promotionName}</td>
                 <td className="py-2 text-center">{item.discountValue}</td>
-                <td className="py-2 text-center">{item.startDate}</td>
-                <td className="py-2 text-center">{item.endDate}</td>
+                <td className="py-2 text-center">
+                  {format(new Date(item.startDate), 'MM/dd/yyyy')} {/* Format startDate */}
+                </td>
+                <td className="py-2 text-center">
+                  {format(new Date(item.endDate), 'MM/dd/yyyy')} {/* Format endDate */}
+                </td>
                 <td className="py-2 text-center">
                   <Switch
                     checked={item.status === 'Active'}
-                    // onChange={() => handleStatusChange(item.promotionId, item.status)}
                     className={`${item.status === 'Active' ? 'bg-blue-600' : 'bg-gray-200'} relative inline-flex items-center h-6 rounded-full w-11`}
                   >
                     <span
@@ -70,7 +77,7 @@ const PromotionList = () => {
                   </Switch>
                 </td>
                 <td className="py-2 text-center">
-                  <button className="text-blue-500 hover:text-blue-700 mr-2">Edit</button>
+                  <button onClick={()=>navigate(`/admin/promotion/addDetail/${item.promotionId}`)} className="text-blue-500 hover:text-blue-700 mr-2">Edit</button>
                   <button className="text-red-500 hover:text-red-700">Delete</button>
                 </td>
               </tr>
@@ -82,6 +89,7 @@ const PromotionList = () => {
           )}
         </tbody>
       </table>
+    </div>
     </div>
   );
 };

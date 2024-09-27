@@ -8,6 +8,7 @@ import { reviewReducer } from "./Review/Reducer";
 import adminOrderReducer from "./Admin/Order/Reducer";
 import { promotionReducer } from "./Promotion/Reducer";
 import { statisticsReducer } from "./Statistic/Reducer";
+import customersReducer from "./Admin/Customer/Reducer";
 
 // Kết hợp các reducer
 const rootReducers = combineReducers({
@@ -19,6 +20,7 @@ const rootReducers = combineReducers({
   adminOrder: adminOrderReducer,
   promotions: promotionReducer,
   statistics: statisticsReducer,
+  customers: customersReducer,
 });
 
 // Tạo store với middleware

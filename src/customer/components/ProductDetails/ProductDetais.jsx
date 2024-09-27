@@ -1,151 +1,95 @@
-/*
-  This example requires some changes to your config:
-  
-  ```
-  // tailwind.config.js
-  module.exports = {
-    // ...
-    theme: {
-      extend: {
-        gridTemplateRows: {
-          '[auto,auto,1fr]': 'auto auto 1fr',
-        },
-      },
-    },
-    plugins: [
-      // ...
-      require('@tailwindcss/aspect-ratio'),
-    ],
-  }
-  ```
-*/
-'use client'
-
-import { useState } from 'react'
-import { StarIcon } from '@heroicons/react/20/solid'
-import { Button, Radio, RadioGroup } from '@headlessui/react'
+import { useState, useEffect } from 'react';
+import { Button, Radio, RadioGroup } from '@headlessui/react';
 import Rating from '@mui/material/Rating';
-import Typography from '@mui/material/Typography';
 import ProductReviewCard from './ProductReviewCard';
-import { Grid, LinearProgress, Box } from '@mui/material'
-import HomeSectionCard from '../HomeSectionCard/HomeSectionCard';
-import { products1 } from '../../../Data/products1'
+import { Grid, LinearProgress, Box, Snackbar, Alert } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { useEffect } from 'react';
 import { findProductsById } from '../../../State/Product/Action';
 import { addItemToCart, getCart } from '../../../State/Cart/Action';
 import { getProductReview } from '../../../State/Review/Action';
+import { getActivePromotions } from '../../../State/Promotion/Action';
+import { useLocation } from 'react-router-dom';
 
-
-
-// const product = {
-//     name: 'Basic Tee 6-Pack',
-//     price: '$192',
-//     href: '#',
-//     breadcrumbs: [
-//         { id: 1, name: 'Men', href: '#' },
-//         { id: 2, name: 'Clothing', href: '#' },
-//     ],
-//     images: [
-//         {
-//             src: 'https://tailwindui.com/img/ecommerce-images/product-page-02-secondary-product-shot.jpg',
-//             alt: 'Two each of gray, white, and black shirts laying flat.',
-//         },
-//         {
-//             src: 'https://tailwindui.com/img/ecommerce-images/product-page-02-tertiary-product-shot-01.jpg',
-//             alt: 'Model wearing plain black basic tee.',
-//         },
-//         {
-//             src: 'https://tailwindui.com/img/ecommerce-images/product-page-02-tertiary-product-shot-02.jpg',
-//             alt: 'Model wearing plain gray basic tee.',
-//         },
-//         {
-//             src: 'https://tailwindui.com/img/ecommerce-images/product-page-02-featured-product-shot.jpg',
-//             alt: 'Model wearing plain white basic tee.',
-//         },
-//     ],
-//     colors: [
-//         { name: 'White', class: 'bg-white', selectedClass: 'ring-gray-400' },
-//         { name: 'Gray', class: 'bg-gray-200', selectedClass: 'ring-gray-400' },
-//         { name: 'Black', class: 'bg-gray-900', selectedClass: 'ring-gray-900' },
-//     ],
-//     sizes: [
-
-//         { name: 'S', inStock: true },
-//         { name: 'M', inStock: true },
-//         { name: 'L', inStock: true },
-//         { name: 'XL', inStock: true },
-
-//     ],
-//     description:
-//         'The Basic Tee 6-Pack allows you to fully express your vibrant personality with three grayscale options. Feeling adventurous? Put on a heather gray tee. Want to be a trendsetter? Try our exclusive colorway: "Black". Need to add an extra pop of color to your outfit? Our white tee has you covered.',
-//     highlights: [
-//         'Hand cut and sewn locally',
-//         'Dyed with our proprietary colors',
-//         'Pre-washed & pre-shrunk',
-//         'Ultra-soft 100% cotton',
-//     ],
-//     details:
-//         'The 6-Pack includes two black, two white, and two heather gray Basic Tees. Sign up for our subscription service and be the first to get new, exciting colors, like our upcoming "Charcoal Gray" limited release.',
-// }
-const reviews = { href: '#', average: 4, totalCount: 117 }
+const jwt = localStorage.getItem("jwt");
 
 function classNames(...classes) {
-    return classes.filter(Boolean).join(' ')
+    return classes.filter(Boolean).join(' ');
 }
 
 export default function ProductDetails() {
-    // const [selectedColor, setSelectedColor] = useState()
-    const [selectedSize, setSelectedSize] = useState("")
-    const navigate=useNavigate();
-    const params=useParams()
-    const dispatch=useDispatch();
-    const {products, review}=useSelector(store=>store);
+    const [selectedSize, setSelectedSize] = useState("");
+    const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+    const navigate = useNavigate();
+    const params = useParams();
+    const dispatch = useDispatch();
+    const products = useSelector(store => store.products);
+    const location = useLocation();
+    const promotionData = location.state?.promotion;
+    const review = useSelector(store => store.review.productReviews.data);
 
-    console.log("Cac danh gia cua san pham: ", review)
 
-    console.log("Param",params.productId)
-    const handleAddToCart=()=> {
-        const data={productId:params.productId, size:selectedSize, price:products.product?.currentPrice}
-        console.log("Data_size", data)
-        console.log("Size ne", selectedSize)
+    let discountValue = 0;
 
+
+    const handleAddToCart = () => {
+        if (!selectedSize) {
+            setSnackbarMessage('Please select a size before adding to cart.');
+            setSnackbarSeverity('error');
+            setOpenSnackbar(true);
+            return;
+        }
+
+        const data = { productId: params.productId, size: selectedSize, price: discountValue, color: products.product?.color };
         dispatch(addItemToCart(data))
-        navigate("/cart")
-    }
+            .then(() => {
+                setSnackbarMessage('Product added to cart successfully!');
+                setSnackbarSeverity('success'); // Set severity to 'success'
+                setOpenSnackbar(true);
+            })
+            .catch(() => {
+                setSnackbarMessage('Failed to add product to cart.');
+                setSnackbarSeverity('error'); // Set severity to 'error'
+                setOpenSnackbar(true);
+            });
+    };
 
-    useEffect(()=>{
-        const data ={productId:params.productId};
-        dispatch(findProductsById(data))
-        dispatch(getProductReview(params.productId))
-    },[params.productId])
+    useEffect(() => {
+        const data = { productId: params.productId };
+        dispatch(findProductsById(data));
+        dispatch(getProductReview(params.productId));
+    }, [params.productId]);
+
+    const handleCloseSnackbar = () => {
+        setOpenSnackbar(false);
+    };
+    const calculateAverageRating = (reviews) => {
+        if (!reviews || reviews.length === 0) {
+            return 0;
+        }
+
+        const totalStars = reviews.reduce((acc, review) => {
+            if (review && review.star) {
+                return acc + review.star;
+            }
+            return acc;
+        }, 0);
+
+        const averageRating = totalStars / reviews.length;
+        return averageRating.toFixed(1);
+    };
+
+
+    const averageRating = calculateAverageRating(review);
 
     return (
         <div className="bg-white lg:px-20">
             <div className="pt-6">
                 <nav aria-label="Breadcrumb">
                     <ol role="list" className="mx-auto flex max-w-2xl items-center space-x-2 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
-                        {/* {products.breadcrumbs.map((breadcrumb) => (
-                            <li key={breadcrumb.id}>
-                                <div className="flex items-center">
-                                    <a href={breadcrumb.href} className="mr-2 text-sm font-medium text-gray-900">
-                                        {breadcrumb.name}
-                                    </a>
-                                    <svg
-                                        fill="currentColor"
-                                        width={16}
-                                        height={20}
-                                        viewBox="0 0 16 20"
-                                        aria-hidden="true"
-                                        className="h-5 w-4 text-gray-300"
-                                    >
-                                        <path d="M5.697 4.34L8.98 16.532h1.327L7.025 4.341H5.697z" />
-                                    </svg>
-                                </div>
-                            </li>
-                        ))} */}
                         <li className="text-sm">
                             <a href={products.href} aria-current="page" className="font-medium text-gray-500 hover:text-gray-600">
                                 {products.product?.productName}
@@ -154,26 +98,13 @@ export default function ProductDetails() {
                     </ol>
                 </nav>
                 <section className='grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-10 px-4 pt-10'>
-                    {/* Image gallery */}
                     <div className="flex flex-col items-center">
-                        <div className="overflow-hidden rounded-lg max-w-[30rem]  max-h-[35rem]">
+                        <div className="overflow-hidden rounded-lg max-w-[30rem] max-h-[35rem]">
                             <img
-                                // alt={product.images[0].alt}
                                 src={products.product?.image || 'https://via.placeholder.com/350'}
                                 className="h-full w-full object-cover object-center"
                             />
                         </div>
-                        {/* <div className="flex flex-wrap space-x-5 justify-center">
-                            {product.images.map((item) => <div className="aspect-h-2 aspect-w-3 overflow-hidden rounded-lg max-w-[5rem]  max-h-[5rem] mt-4">
-                                <img
-                                    src={item.src}
-                                    alt={item.alt}
-                                    className="h-full w-full object-cover object-center"
-                                />
-                            </div>)}
-
-                        </div> */}
-
                     </div>
                     {/* Product info */}
                     <div className="lg:col-span-1 maxt-auto max-w-2xl px-4 pb-16 sm:px-6 lg:max-w-7xl lg:px-8 lg:pb-24 ">
@@ -187,79 +118,31 @@ export default function ProductDetails() {
                         {/* Options */}
                         <div className="mt-4 lg:row-span-3 lg:mt-0">
                             <h2 className="sr-only">Product information</h2>
-                            {/* <p className="text-3xl tracking-tight text-gray-900">{product.price}</p> */}
                             <div className='flex space-x-5 items-center text-lg lg:text-xl text-gray-900 mt-6'>
                                 <p className='font-semibold'></p>
-                                <p className='opacity-50 line-through'>{products.product?.currentPrice}</p>
-                                <p className='text-green-600 font-semibold'>5% Off</p>
+                                {/* <p className='font-bold'>${discountValue}</p> */}
+                                <p className='font-bold'> ${products.product?.currentPrice}</p>
+                                <p className='text-green-600 font-semibold'>
+                                    {promotionData ? promotionData.name : ''}
+                                </p>
+
                             </div>
 
                             {/* Reviews */}
                             <div className="mt-6">
-                                {/* <h3 className="sr-only">Reviews</h3>
-                                <div className="flex items-center">
-                                    <div className="flex items-center">
-                                        {[0, 1, 2, 3, 4].map((rating) => (
-                                            <StarIcon
-                                                key={rating}
-                                                aria-hidden="true"
-                                                className={classNames(
-                                                    reviews.average > rating ? 'text-gray-900' : 'text-gray-200',
-                                                    'h-5 w-5 flex-shrink-0',
-                                                )}
-                                            />
-                                        ))}
-                                    </div>
-                                    <p className="sr-only">{reviews.average} out of 5 stars</p>
-                                    <a href={reviews.href} className="ml-3 text-sm font-medium text-indigo-600 hover:text-indigo-500">
-                                        {reviews.totalCount} reviews
-                                    </a>
-                                </div> */}
                                 <div className='flex items-center'>
-                                    <Rating name="read-only" value={5.5} readOnly />
-                                    <p className='opacity-50 text-sm'>56540 Ratings</p>
-                                    <p className='ml-3 text-sm font-medium text-indigo-600 hover:text-indigo-500'>3870 reviews</p>
+                                    <Rating name="read-only" value={averageRating} readOnly />
+                                    <p className='opacity-50 text-sm'>({averageRating})</p>
+                                    <p className='ml-3 text-sm font-medium text-indigo-600 hover:text-indigo-500'>{review?.length} reviews</p>
                                 </div>
 
                             </div>
 
                             <form className="mt-10">
-                                {/* Colors */}
-                                {/* <div>
-                                    <h3 className="text-sm font-medium text-gray-900">Color</h3>
-
-                                    <fieldset aria-label="Choose a color" className="mt-4">
-                                        <RadioGroup value={selectedColor} onChange={setSelectedColor} className="flex items-center space-x-3">
-                                            {product.colors.map((color) => (
-                                                <Radio
-                                                    key={color.name}
-                                                    value={color}
-                                                    aria-label={color.name}
-                                                    className={classNames(
-                                                        color.selectedClass,
-                                                        'relative -m-0.5 flex cursor-pointer items-center justify-center rounded-full p-0.5 focus:outline-none data-[checked]:ring-2 data-[focus]:data-[checked]:ring data-[focus]:data-[checked]:ring-offset-1',
-                                                    )}
-                                                >
-                                                    <span
-                                                        aria-hidden="true"
-                                                        className={classNames(
-                                                            color.class,
-                                                            'h-8 w-8 rounded-full border border-black border-opacity-10',
-                                                        )}
-                                                    />
-                                                </Radio>
-                                            ))}
-                                        </RadioGroup>
-                                    </fieldset>
-                                </div> */}
-
                                 {/* Sizes */}
                                 <div className="mt-10">
                                     <div className="flex items-center justify-between">
                                         <h3 className="text-sm font-medium text-gray-900">Size</h3>
-                                        {/* <a href="#" className="text-sm font-medium text-indigo-600 hover:text-indigo-500">
-                                            Size guide
-                                        </a> */}
                                     </div>
 
                                     <fieldset aria-label="Choose a size" className="mt-4">
@@ -281,7 +164,7 @@ export default function ProductDetails() {
                                                     )}
                                                 >
                                                     <span>{detail.size}</span>
-                                                    {detail.quantity > 0 ?  (
+                                                    {detail.quantity > 0 ? (
                                                         <span
                                                             aria-hidden="true"
                                                             className="pointer-events-none absolute -inset-px rounded-md border-2 border-transparent group-data-[focus]:border group-data-[checked]:border-indigo-500"
@@ -306,18 +189,30 @@ export default function ProductDetails() {
                                         </RadioGroup>
                                     </fieldset>
                                 </div>
+                                <div className='flex space-between'>
+                                    <button
+                                        onClick={handleAddToCart}
+                                        type="button"
+                                        className="mt-10 flex items-center justify-center rounded-md border border-black px-8 py-3 text-base font-medium text-black hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                    >
+                                        Add to cart
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => navigate("/account/buy-now", {
+                                            state: {
+                                                size: selectedSize,
+                                                product: products.product,
+                                                promotion: promotionData // Passing promotion data
+                                            }
+                                        })}
+                                        className="mt-10 ml-4 flex items-center justify-center rounded-md border border-transparent bg-primary px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                    >
+                                        Buy now
+                                    </button>
 
-                                <button 
-                                    onClick={handleAddToCart}
-                                    type="submit"
-                                    className="mt-10 flex w-full items-center justify-center rounded-md border border-transparent bg-primary px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                                >
-                                    Add to cart
+                                </div>
 
-                                </button>
-                                {/* <Button color= variant="contained" sx={{px:"2rem", py:"1rem"}}>
-                                    Add to cart
-                                </Button> */}
                             </form>
                         </div>
 
@@ -330,119 +225,40 @@ export default function ProductDetails() {
                                     <p className="text-base text-gray-900">{products.product?.description}</p>
                                 </div>
                             </div>
-
-                            {/* <div className="mt-10">
-                                <h3 className="text-sm font-medium text-gray-900">Highlights</h3>
-
-                                <div className="mt-4">
-                                    <ul role="list" className="list-disc space-y-2 pl-4 text-sm">
-                                        {product.highlights.map((highlight) => (
-                                            <li key={highlight} className="text-gray-400">
-                                                <span className="text-gray-600">{highlight}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            </div> */}
-
                             <div className="mt-10">
-                                <h2 className="text-sm font-semibold text-gray-900">Material</h2>
-                                <p className="text-sm text-gray-600">{products.product?.material}</p>
-                            </div>
-                            <div className="mt-2">
-                                <h2 className="text-sm font-semibold text-gray-900">Color</h2>
-                                <p className="text-sm text-gray-600">{products.product?.color}</p>
-                    
+                                <h2 className="text-sm font-semibold text-gray-900">Care Instructions</h2>
+                                <p className="text-sm text-gray-600">{products.product?.careInstructions}</p>
                             </div>
                         </div>
                     </div>
                 </section>
-                {/* ratings and reviews */}
-                <section>
-                    <h1 className='font-semibold text-lg pb-4'>Recent Review & Rating</h1>
-                    <div className='border p-5'>
-                        <Grid container spacing={7}>
-                            <Grid item xs={7}>
-                                <div className='space-y-5'>
-                                    {review.productReviews.map((item) => <ProductReviewCard  key={item.reviewId} review={item}/>)}
-                                </div>
-                            </Grid>
-
-                            {/* <Grid item xs={5}>
-                                <h1 className='text-xl font-semibold pb-2'>Product Rating</h1>
-                                <div className='flex items-center space-x-3'>
-                                    <Rating value={4.6} precision={.5} readOnly />
-                                    <p className='opacity-60'>42627 Ratings</p>
-                                </div>
-                                <Box className="mt-5 space-y-3">
-                                    <Grid container alignItems='center' gap={2}>
-                                        <Grid item xs={2}>
-                                            <p>Excellent</p>
-                                        </Grid>
-
-                                        <Grid item xs={7}>
-                                            <LinearProgress sx={{bgcolor:'#d0d0d0', borderRadius:4, height:7}}
-                                             variant='determinate' value={50} color='success' />
-                                        </Grid>
-                                    </Grid>
-                                    <Grid container alignItems='center' gap={2}>
-                                        <Grid item xs={2}>
-                                            <p>Very good</p>
-                                        </Grid>
-
-                                        <Grid item xs={7}>
-                                            <LinearProgress sx={{bgcolor:'#d0d0d0', borderRadius:4, height:7}}
-                                             variant='determinate' value={40} color='success' />
-                                        </Grid>
-                                    </Grid>
-                                    <Grid container alignItems='center' gap={2}>
-                                        <Grid item xs={2}>
-                                            <p>Good</p>
-                                        </Grid>
-
-                                        <Grid item xs={7}>
-                                            <LinearProgress sx={{bgcolor:'#d0d0d0', borderRadius:4, height:7, color:'yellow'}}
-                                             variant='determinate' value={25} />
-                                        </Grid>
-                                    </Grid>
-                                    <Grid container alignItems='center' gap={2}>
-                                        <Grid item xs={2}>
-                                            <p>Average</p>
-                                        </Grid>
-
-                                        <Grid item xs={7}>
-                                            <LinearProgress sx={{bgcolor:'#d0d0d0', borderRadius:4, height:7}}
-                                             variant='determinate' value={20} color='warning' />
-                                        </Grid>
-                                    </Grid>
-                                    <Grid container alignItems='center' gap={2}>
-                                        <Grid item xs={2}>
-                                            <p>Poor</p>
-                                        </Grid>
-
-                                        <Grid item xs={7}>
-                                            <LinearProgress sx={{bgcolor:'#d0d0d0', borderRadius:4, height:7}}
-                                             variant='determinate' value={15} color='error' />
-                                        </Grid>
-                                    </Grid>
-
-                                </Box>
-                            </Grid> */}
-                        </Grid>
-                    </div>
-                </section>
-                {/* Similar product */}
-                <section className='pt-10'>
-                    <h1 className='py-5 text-xl font-bold'>Similar Products</h1>
-                    <div className='flex flex-wrap space-y-4'>
-                        {products1.map((item)=><HomeSectionCard product={item}/>)}
-                    </div>
-                </section>
-
+                <Snackbar
+                    open={openSnackbar}
+                    autoHideDuration={6000}
+                    onClose={handleCloseSnackbar}
+                >
+                    <Alert
+                        onClose={handleCloseSnackbar}
+                        severity={snackbarSeverity}
+                        sx={{ width: '100%' }}
+                    >
+                        {snackbarMessage}
+                    </Alert>
+                </Snackbar>
             </div>
+            <section>
+                <h1 className='font-semibold text-lg pb-4'>Recent Review & Rating</h1>
+                <div className='border p-5'>
+                    <Grid container spacing={7}>
+                        <Grid item xs={7}>
+                            <div className='space-y-5'>
+                                {review?.map((item) => <ProductReviewCard key={item.reviewId} review={item} />)}
+                            </div>
+                        </Grid>
+                    </Grid>
+                </div>
+            </section>
         </div>
-    )
+
+    );
 }
-
-
-

@@ -5,7 +5,6 @@ import { retrieveMonthlyRevenue } from "../../State/Statistic/Action";
 
 const ColumnChartStatistics = () => {
     const dispatch = useDispatch();
-    // Extract necessary pieces from Redux store
     const { monthlyRevenue, loading, error } = useSelector(store => store.statistics);
     const [selectedYear, setSelectedYear] = useState(2024);
 
@@ -17,7 +16,6 @@ const ColumnChartStatistics = () => {
         setSelectedYear(parseInt(event.target.value));
     };
 
-    // Use data directly from API response as it matches the required format
     const transformedData = monthlyRevenue?.data || [];
 
     return (

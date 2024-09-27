@@ -2,9 +2,17 @@ import { Menu, Popover, Transition } from "@headlessui/react";
 import { Fragment } from "react";
 import { HiOutlineBell, HiOutlineChatAlt, HiOutlineSearch } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { logout } from "../../State/Auth/Action";
 
 const Header = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/");
+  };
 
   return (
     <div className="bg-white h-16 px-4 flex justify-between items-center">
@@ -21,7 +29,7 @@ const Header = () => {
           {({ open }) => (
             <>
               <Popover.Button
-                className={`${open && "bg-gray-100"} p-1.5 inline-flex rounded-sm items-center text-gray-700 hover:text-opacity-100 focus:outline-none active:bg-gray-100`}
+                className={`${open ? "bg-gray-100" : ""} p-1.5 inline-flex rounded-sm items-center text-gray-700 hover:text-opacity-100 focus:outline-none active:bg-gray-100`}
               >
                 <HiOutlineBell fontSize={20} />
               </Popover.Button>
@@ -53,7 +61,7 @@ const Header = () => {
           {({ open }) => (
             <>
               <Popover.Button
-                className={`${open && "bg-gray-100"} p-1.5 inline-flex rounded-sm items-center text-gray-700 hover:text-opacity-100 focus:outline-none active:bg-gray-100`}
+                className={`${open ? "bg-gray-100" : ""} p-1.5 inline-flex rounded-sm items-center text-gray-700 hover:text-opacity-100 focus:outline-none active:bg-gray-100`}
               >
                 <HiOutlineChatAlt fontSize={20} />
               </Popover.Button>
@@ -87,9 +95,9 @@ const Header = () => {
               <span className="sr-only">Open</span>
               <div
                 className="w-10 h-10 rounded-full bg-gray-200 bg-cover bg-center bg-no-repeat"
-                style={{ backgroundImage: 'url("https://png.pngtree.com/png-clipart/20230914/original/pngtree-christmas-corgi-vector-png-image_12160999.png")' }}
+                style={{ backgroundImage: 'url("https://i.pinimg.com/564x/b5/71/c9/b571c94777b1f87f968867080e12724d.jpg")' }}
               >
-                <span className="sr-only">ttv</span>
+                <span className="sr-only">Profile Picture</span>
               </div>
             </Menu.Button>
           </div>
@@ -107,7 +115,7 @@ const Header = () => {
               <Menu.Item>
                 {({ active }) => (
                   <div
-                    className={`${active && "text-white bg-primary font-normal"} block text-primary focus:bg-hoverPrimary cursor-pointer px-4 py-2 rounded-md`}
+                    className={`${active ? "text-white bg-primary font-normal" : "text-primary"} block focus:bg-hoverPrimary cursor-pointer px-4 py-2 rounded-md`}
                     onClick={() => navigate("/admin/profile")}
                   >
                     Your Profile
@@ -117,7 +125,7 @@ const Header = () => {
               <Menu.Item>
                 {({ active }) => (
                   <div
-                    className={`${active && "text-white bg-primary font-normal"} block text-primary focus:bg-hoverPrimary cursor-pointer px-4 py-2 rounded-md`}
+                    className={`${active ? "text-white bg-primary font-normal" : "text-primary"} block focus:bg-hoverPrimary cursor-pointer px-4 py-2 rounded-md`}
                     onClick={() => navigate("/admin/settings")}
                   >
                     Settings
@@ -127,20 +135,19 @@ const Header = () => {
               <Menu.Item>
                 {({ active }) => (
                   <div
-                    onClick={() => navigate("/logout")}
-                    className={`${active && "text-white bg-primary font-normal"} block text-primary focus:bg-hoverPrimary cursor-pointer px-4 py-2 rounded-md`}
+                    className={`${active ? "text-white bg-primary font-normal" : "text-primary"} block focus:bg-hoverPrimary cursor-pointer px-4 py-2 rounded-md`}
+                    onClick={() => handleLogout()}
                   >
                     Logout
                   </div>
                 )}
               </Menu.Item>
-
             </Menu.Items>
           </Transition>
         </Menu>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Header
+export default Header;

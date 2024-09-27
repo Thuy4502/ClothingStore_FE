@@ -7,26 +7,25 @@ import { useNavigate } from 'react-router-dom';
 
 const orderStatus = [
     { label: 'Pending', value: 'PENDING' },
-    { label: 'Accepted', value: 'ACCEPTED' },
-    { label: 'On the way', value: 'ONTHEWAY' },
+    { label: 'Confirmed', value: 'CONFIRMED' },
+    { label: 'Shipped', value: 'SHIPPED' },
     { label: 'Delivered', value: 'DELIVERED' },
     { label: 'Cancelled', value: 'CANCELLED' },
 ];
 
 const Order = () => {
     const dispatch = useDispatch();
-    const navigate = useNavigate()
-    const { order } = useSelector(store => store);
+    const navigate = useNavigate();
     const { orders } = useSelector(store => store.order);
     const [selectedStatus, setSelectedStatus] = useState(null);
     const [filteredOrders, setFilteredOrders] = useState([]);
-   
+
     useEffect(() => {
         dispatch(getOrderHistory());
     }, [dispatch]);
 
     useEffect(() => {
-        // Lọc đơn hàng theo trạng thái đã chọn
+        // Filter orders by selected status
         if (orders) {
             const filtered = selectedStatus
                 ? orders.filter(order => order.status === selectedStatus)
@@ -37,6 +36,10 @@ const Order = () => {
 
     const handleStatusChange = (event) => {
         setSelectedStatus(event.target.value);
+    };
+
+    const calculateTotal = () => {
+        return filteredOrders.reduce((acc, order) => acc + order.total, 0);
     };
 
     return (
@@ -79,9 +82,14 @@ const Order = () => {
                         {/* Dữ liệu đơn hàng */}
                         <div className='space-y-3 pb-5'>
                             {filteredOrders.length > 0 ? (
-                                filteredOrders.map((item) => (
-                                    <OrderCard key={item.id} order={item} />
-                                ))
+                                <>
+                                    {filteredOrders.map((item) => (
+                                        <OrderCard key={item.id} order={item} />
+                                    ))}
+                                    {/* <div className='font-bold text-lg mt-4'>
+                                        Total Amount: ${calculateTotal().toFixed(2)}
+                                    </div> */}
+                                </>
                             ) : (
                                 <p>No orders found.</p>
                             )}

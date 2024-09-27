@@ -5,7 +5,6 @@ import dayjs from 'dayjs';
 
 const ProductReviewCard = (item) => {
     const formattedDate = dayjs(item.review.createAt).format('DD/MM/YYYY');
-    console.log("đánh giá", item)
   return (
     <div>
         <Grid container spacing={2} gap={3}>

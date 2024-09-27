@@ -63,8 +63,8 @@ const Achievement = () => {
                                     </div>
     
                                     <div class="mx-5">
-                                        <h4 class="text-2xl font-semibold text-gray-700">8,282</h4>
-                                        <div class="text-gray-500">New Users</div>
+                                        <h4 class="text-2xl font-semibold text-gray-700">20</h4>
+                                        <div class="text-gray-500">Users</div>
                                     </div>
                                 </div>
                             </div>
@@ -87,7 +87,7 @@ const Achievement = () => {
                                     </div>
     
                                     <div class="mx-5">
-                                        <h4 class="text-2xl font-semibold text-gray-700">200,521</h4>
+                                        <h4 class="text-2xl font-semibold text-gray-700">116</h4>
                                         <div class="text-gray-500">Total Orders</div>
                                     </div>
                                 </div>
@@ -107,7 +107,7 @@ const Achievement = () => {
                                     </div>
     
                                     <div class="mx-5">
-                                        <h4 class="text-2xl font-semibold text-gray-700">215,542</h4>
+                                        <h4 class="text-2xl font-semibold text-gray-700">20</h4>
                                         <div class="text-gray-500">Available Products</div>
                                     </div>
                                 </div>

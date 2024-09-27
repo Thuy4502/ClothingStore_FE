@@ -1,8 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Grid, TextField, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { getUser, register } from '../../State/Auth/Action'; // Import đúng
+import { getUser, register } from '../../State/Auth/Action'; 
 
 const RegisterForm = () => {
   const navigate = useNavigate();
@@ -10,30 +10,58 @@ const RegisterForm = () => {
   const jwt = localStorage.getItem("jwt");
   const { auth } = useSelector((store) => store);
 
+  const [formValues, setFormValues] = useState({
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    firstname: '',
+    lastname: '',
+  });
+  const [errors, setErrors] = useState({});
+
   useEffect(() => {
     if (jwt) {
       dispatch(getUser(jwt));
     }
-  }, [jwt, auth.jwt, dispatch]); // Thêm dispatch vào dependency array
+  }, [jwt, auth.jwt, dispatch]); 
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFormValues((prevValues) => ({
+      ...prevValues,
+      [name]: value,
+    }));
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (formValues.password !== formValues.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+    // Add other validations if necessary
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const userData = {
-      username: data.get("username"),
-      email: data.get("email"),
-      password: data.get("password"),
-      firstname: data.get("firstname"),
-      lastname: data.get("lastname"),
-      role_name: "CUSTOMER"
-
-    };
-    dispatch(register(userData));
-    console.log("userData", userData);
+    if (validateForm()) {
+      const userData = {
+        username: formValues.username,
+        email: formValues.email,
+        password: formValues.password,
+        firstname: formValues.firstname,
+        lastname: formValues.lastname,
+        role_name: "CUSTOMER"
+      };
+      dispatch(register(userData));
+      console.log("userData", userData);
+    }
   };
 
   return (
-    <div>
+    <div >
       <form onSubmit={handleSubmit}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
@@ -44,20 +72,16 @@ const RegisterForm = () => {
               label='Username'
               fullWidth
               autoComplete='given-name'
+              value={formValues.username}
+              onChange={handleChange}
               sx={{
-                '& .MuiInputLabel-root': { color: 'var(--primary-color)' }, // Màu cho label 
+                '& .MuiInputLabel-root': { color: 'var(--primary-color)' },
                 '& .MuiInputLabel-root.Mui-focused': { color: 'var(--primary-color)' },
-                '& .MuiFormHelperText-root': { color: 'var(--primary-color)' }, // Màu cho helper text
+                '& .MuiFormHelperText-root': { color: 'var(--primary-color)' },
                 '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: '#ddd', // Màu border khi không focus
-                  },
-                  '&:hover fieldset': {
-                    borderColor: 'var(--primary-color)', // Màu border khi hover
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: 'var(--primary-color)', // Màu border khi focus
-                  },
+                  '& fieldset': { borderColor: '#ddd' },
+                  '&:hover fieldset': { borderColor: 'var(--primary-color)' },
+                  '&.Mui-focused fieldset': { borderColor: 'var(--primary-color)' },
                 },
               }}
             />
@@ -71,20 +95,16 @@ const RegisterForm = () => {
               label='First name'
               fullWidth
               autoComplete='given-name'
+              value={formValues.firstname}
+              onChange={handleChange}
               sx={{
-                '& .MuiInputLabel-root': { color: 'var(--primary-color)' }, // Màu cho label 
+                '& .MuiInputLabel-root': { color: 'var(--primary-color)' },
                 '& .MuiInputLabel-root.Mui-focused': { color: 'var(--primary-color)' },
-                '& .MuiFormHelperText-root': { color: 'var(--primary-color)' }, // Màu cho helper text
+                '& .MuiFormHelperText-root': { color: 'var(--primary-color)' },
                 '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: '#ddd', // Màu border khi không focus
-                  },
-                  '&:hover fieldset': {
-                    borderColor: 'var(--primary-color)', // Màu border khi hover
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: 'var(--primary-color)', // Màu border khi focus
-                  },
+                  '& fieldset': { borderColor: '#ddd' },
+                  '&:hover fieldset': { borderColor: 'var(--primary-color)' },
+                  '&.Mui-focused fieldset': { borderColor: 'var(--primary-color)' },
                 },
               }}
             />
@@ -98,20 +118,16 @@ const RegisterForm = () => {
               label='Last name'
               fullWidth
               autoComplete='given-name'
+              value={formValues.lastname}
+              onChange={handleChange}
               sx={{
-                '& .MuiInputLabel-root': { color: 'var(--primary-color)' }, // Màu cho label 
+                '& .MuiInputLabel-root': { color: 'var(--primary-color)' },
                 '& .MuiInputLabel-root.Mui-focused': { color: 'var(--primary-color)' },
-                '& .MuiFormHelperText-root': { color: 'var(--primary-color)' }, // Màu cho helper text
+                '& .MuiFormHelperText-root': { color: 'var(--primary-color)' },
                 '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: '#ddd', // Màu border khi không focus
-                  },
-                  '&:hover fieldset': {
-                    borderColor: 'var(--primary-color)', // Màu border khi hover
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: 'var(--primary-color)', // Màu border khi focus
-                  },
+                  '& fieldset': { borderColor: '#ddd' },
+                  '&:hover fieldset': { borderColor: 'var(--primary-color)' },
+                  '&.Mui-focused fieldset': { borderColor: 'var(--primary-color)' },
                 },
               }}
             />
@@ -125,20 +141,16 @@ const RegisterForm = () => {
               label='Email'
               fullWidth
               autoComplete='email'
+              value={formValues.email}
+              onChange={handleChange}
               sx={{
-                '& .MuiInputLabel-root': { color: 'var(--primary-color)' }, // Màu cho label 
+                '& .MuiInputLabel-root': { color: 'var(--primary-color)' },
                 '& .MuiInputLabel-root.Mui-focused': { color: 'var(--primary-color)' },
-                '& .MuiFormHelperText-root': { color: 'var(--primary-color)' }, // Màu cho helper text
+                '& .MuiFormHelperText-root': { color: 'var(--primary-color)' },
                 '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: '#ddd', // Màu border khi không focus
-                  },
-                  '&:hover fieldset': {
-                    borderColor: 'var(--primary-color)', // Màu border khi hover
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: 'var(--primary-color)', // Màu border khi focus
-                  },
+                  '& fieldset': { borderColor: '#ddd' },
+                  '&:hover fieldset': { borderColor: 'var(--primary-color)' },
+                  '&.Mui-focused fieldset': { borderColor: 'var(--primary-color)' },
                 },
               }}
             />
@@ -150,22 +162,45 @@ const RegisterForm = () => {
               id='password'
               name='password'
               label='Password'
+              type='password'
               fullWidth
               autoComplete='password'
+              value={formValues.password}
+              onChange={handleChange}
               sx={{
-                '& .MuiInputLabel-root': { color: 'var(--primary-color)' }, // Màu cho label 
+                '& .MuiInputLabel-root': { color: 'var(--primary-color)' },
                 '& .MuiInputLabel-root.Mui-focused': { color: 'var(--primary-color)' },
-                '& .MuiFormHelperText-root': { color: 'var(--primary-color)' }, // Màu cho helper text
+                '& .MuiFormHelperText-root': { color: 'var(--primary-color)' },
                 '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: '#ddd', // Màu border khi không focus
-                  },
-                  '&:hover fieldset': {
-                    borderColor: 'var(--primary-color)', // Màu border khi hover
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: 'var(--primary-color)', // Màu border khi focus
-                  },
+                  '& fieldset': { borderColor: '#ddd' },
+                  '&:hover fieldset': { borderColor: 'var(--primary-color)' },
+                  '&.Mui-focused fieldset': { borderColor: 'var(--primary-color)' },
+                },
+              }}
+            />
+          </Grid>
+
+          <Grid item xs={12}>
+            <TextField
+              required
+              id='confirmPassword'
+              name='confirmPassword'
+              label='Confirm Password'
+              type='password'
+              fullWidth
+              autoComplete='new-password'
+              value={formValues.confirmPassword}
+              onChange={handleChange}
+              error={!!errors.confirmPassword}
+              helperText={errors.confirmPassword}
+              sx={{
+                '& .MuiInputLabel-root': { color: 'var(--primary-color)' },
+                '& .MuiInputLabel-root.Mui-focused': { color: 'var(--primary-color)' },
+                '& .MuiFormHelperText-root': { color: 'var(--primary-color)' },
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': { borderColor: '#ddd' },
+                  '&:hover fieldset': { borderColor: 'var(--primary-color)' },
+                  '&.Mui-focused fieldset': { borderColor: 'var(--primary-color)' },
                 },
               }}
             />
@@ -192,7 +227,6 @@ const RegisterForm = () => {
               color: 'var(--primary-color)'
              }} >
             Login
-
           </Button>
         </div>
       </div>

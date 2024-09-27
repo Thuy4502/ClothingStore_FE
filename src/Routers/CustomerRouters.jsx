@@ -10,8 +10,16 @@ import Checkout from '../customer/components/Checkout/Checkout'
 import Order from '../customer/components/Order/Order'
 import OrderDetails from '../customer/components/Order/OrderDetails'
 import ImageUpload from '../Admin/Component/ImageUpload'
+import UserProfileCard from '../customer/components/Profile/UserProfile'
+import ProductQuickView from '../customer/components/Product/ProductQuickView'
+import BuyNow from '../customer/components/Checkout/BuyNow'
+import PrivateRoute from './PrivateRoute'
+import AdminRouters from './AdminRouters'
+import Admin from '../Admin/Admin'
+import Error from '../customer/Auth/Error'
 
 const CustomerRouters = () => {
+    
     return (
         <div>
             <div>
@@ -20,18 +28,20 @@ const CustomerRouters = () => {
             <Routes>
                 <Route path='/login' element={<HomePage/>}></Route>
                 <Route path='/register' element={<HomePage/>}></Route>
-                <Route path='/' element={<HomePage/>}></Route>
-                <Route path='/cart' element={<Cart/>}></Route>
+                <Route path='/forgot-password' element={<HomePage/>}></Route>
+                <Route path='/confirm-otp' element={<HomePage/>}></Route>
+                <Route path='/' element={<HomePage/>}></Route> 
+                <Route path='/product/:productId' element={<ProductDetails/>}></Route>   
                 <Route path='/:lavelOne/:lavelTwo/:lavelThre' element={<Product/>}></Route>
                 <Route path='/products/getAll' element={<Product/>}></Route>
-                <Route path='/product/:productId' element={<ProductDetails/>}></Route>
-                <Route path='/checkout' element={<Checkout/>}></Route>
-                <Route path='/account/order' element={<Order/>}></Route>
-                <Route path='/account/order/:orderId' element={<OrderDetails/>}></Route>
-                <Route path='/test' element={<ImageUpload/>}></Route>
+                <Route path='/cart' element={<PrivateRoute element={<Cart />} />} />
+                <Route path='/checkout' element={<PrivateRoute element={<Checkout />} />} />
+                <Route path='/account/order' element={<PrivateRoute element={<Order />} />} />
+                <Route path='/account/order/:orderId' element={<PrivateRoute element={<OrderDetails />} />} />
+                <Route path='/account/profile' element={<PrivateRoute element={<UserProfileCard />} />} />
+                <Route path='/account/buy-now' element={<PrivateRoute element={<BuyNow />} />} />
+                <Route path='/error' element={<Error />} /> 
 
-
-          {/* <Order/> */}
             </Routes>
             <div>
                 <Footer/>

@@ -12,7 +12,6 @@ const initialSizes = [
   { size: "XL", quantity: 0 },
 ];
 
-// Đặt đường dẫn đến ảnh mặc định trong thư mục public
 const defaultImage = 'https://www.shutterstock.com/image-vector/image-icon-600nw-211642900.jpg'; // Đảm bảo ảnh mặc định nằm trong thư mục public
 
 const CreateProductForm = () => {
@@ -35,7 +34,7 @@ const CreateProductForm = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [previewUrl, setPreviewUrl] = useState(defaultImage); // Khởi tạo với ảnh mặc định
+  const [previewUrl, setPreviewUrl] = useState(defaultImage);
 
   const dispatch = useDispatch();
 
@@ -61,7 +60,6 @@ const CreateProductForm = () => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
       setSelectedFile(selectedFile);
-      // Tạo URL tạm thời để hiển thị ảnh
       const url = URL.createObjectURL(selectedFile);
       setPreviewUrl(url);
     }
@@ -72,25 +70,29 @@ const CreateProductForm = () => {
     setLoading(true);
 
     try {
-      if (selectedFile) {
-        // Upload image and get URL
-        const imageUrl = await uploadImageToFirebase(selectedFile);
-        setProductData((prevState) => ({
-          ...prevState,
-          image: imageUrl,
-        }));
-      }
+        let imageUrl = defaultImage; 
+        if (selectedFile) {
+            // Upload image and get URL
+            imageUrl = await uploadImageToFirebase(selectedFile);
+        }
 
-      // Dispatch the action to create the product with the image URL
-      dispatch(createProduct(productData));
-      console.log("Product data", productData);
+        // Update the product data with the image URL
+        const updatedProductData = {
+            ...productData,
+            image: imageUrl,
+        };
+
+        // Dispatch the action to create the product with the image URL
+        dispatch(createProduct(updatedProductData));
+        console.log("Product data", updatedProductData);
     } catch (error) {
-      console.error("Error creating product:", error);
-      setError('Error creating product. Please try again.');
+        console.error("Error creating product:", error);
+        setError('Error creating product. Please try again.');
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
+
 
   return (
     <div className='bg-secondary'>
@@ -104,7 +106,7 @@ const CreateProductForm = () => {
 
             <Grid item xs={12} style={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
               <img
-                src={previewUrl} 
+                src={previewUrl}
                 alt="Preview"
                 style={{ width: '200px', height: '200px', objectFit: 'cover', borderRadius: '8px' }}
               />
@@ -114,24 +116,38 @@ const CreateProductForm = () => {
                 <input type="file" accept="image/*" onChange={handleFileChange} />
               </div>
             </Grid>
-
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Brand"
-                name="brandId"
-                value={productData.brandId}
+                label="Product Name"
+                name="productName"
+                value={productData.productName}
                 onChange={handleChange}
                 variant="outlined"
                 sx={{ fontFamily: 'Poppins' }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
+              <FormControl fullWidth variant="outlined">
+                <InputLabel>Brand</InputLabel>
+                <Select
+                  name="brandId"
+                  value={productData.brandId}
+                  onChange={handleChange}
+                  label="Brand"
+                  sx={{ fontFamily: 'Poppins' }}
+                >
+                  <MenuItem value="1">H&M</MenuItem>
+                  <MenuItem value="2">Jara</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="Product Name"
-                name="productName"
-                value={productData.productName}
+                label="Material"
+                name="material"
+                value={productData.material}
                 onChange={handleChange}
                 variant="outlined"
                 sx={{ fontFamily: 'Poppins' }}
@@ -173,6 +189,12 @@ const CreateProductForm = () => {
                   <MenuItem value="1">T-shirt</MenuItem>
                   <MenuItem value="2">Dress</MenuItem>
                   <MenuItem value="3">Pants</MenuItem>
+                  <MenuItem value="4">Jacket</MenuItem>
+                  <MenuItem value="5">Shorts</MenuItem>
+                  <MenuItem value="6">Hoodie</MenuItem>
+                  <MenuItem value="7">Shirt</MenuItem>
+
+
                 </Select>
               </FormControl>
             </Grid>
